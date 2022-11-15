@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React, { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import useInput from '../../hooks/useInput';
@@ -25,8 +26,18 @@ const SignUp = () => {
     console.log(email, nickname, password, passwordCheck)
     if(!mismatchError) { // false -> error, true -> pass
       console.log('서버 통과!!! 회원가입에 성공했습니다.')
-    } else {
-      console.log('비밀번호가 틀렸습니다!')
+      axios.post('localhost:3095/api/users', {
+        email,
+        nickname,
+        password
+      })
+      .then((response) => {
+        console.log(response)
+      }) // 성공
+      .catch((err) => {
+        console.log(err.response) 
+      }) // 실패
+      .finally(() => {}) // 성공, 실패 여부와 상관없이 무조건 실행
     }
   }, [email, nickname, password, passwordCheck, mismatchError])
 
