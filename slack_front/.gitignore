@@ -18,6 +18,10 @@
 .env.test.local
 .env.production.local
 
+# CRA Settings
+/config
+/scripts
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
