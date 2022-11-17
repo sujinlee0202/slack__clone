@@ -3,7 +3,7 @@ import React, { useState, useCallback } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import useInput from '../../hooks/useInput';
 import { Header, Form, Label, Input, Button, LinkContainer, Error, Success } from './styles';
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr';
 import fetcher from '../../utils/fetcher';
 
 
@@ -42,6 +42,7 @@ const SignUp = () => {
       .then((response) => {
         console.log(response)
         setSignUpSuccess(true)
+        mutate(response.data, false)
       }) // 성공
       .catch((error: Error | AxiosError) => {
         if(axios.isAxiosError(error)) {

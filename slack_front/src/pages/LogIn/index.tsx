@@ -23,9 +23,9 @@ const LogIn = () => {
     }, {
       withCredentials: true,
     })
-    .then(() => {
+    .then((response) => {
       console.log('로그인 성공')
-      mutate();
+      mutate(response.data, false);
     })
     .catch((error) => {
       setLoginError(error.response?.data?.statusCode ===  401)
