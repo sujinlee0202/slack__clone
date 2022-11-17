@@ -1,10 +1,14 @@
 import axios, { AxiosError } from 'axios';
 import React, { useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import useInput from '../../hooks/useInput';
 import { Header, Form, Label, Input, Button, LinkContainer, Error, Success } from './styles';
+import useSWR from 'swr';
+import fetcher from '../../utils/fetcher';
+
 
 const SignUp = () => {
+  const { data } = useSWR('http://localhost:3095/api/users', fetcher)
   const [email, onChangeEmail] = useInput('')
   const [nickname, onChangeNickname] = useInput('')
   const [password, setPassword] = useState('')
@@ -30,7 +34,7 @@ const SignUp = () => {
       console.log('서버 통과!!! 회원가입에 성공했습니다.')
       setSignUpError('') // 초기화
       setSignUpSuccess(false)
-      axios.post('localhost:3095/api/users', {
+      axios.post('http://localhost:3095/api/users', {
         email,
         nickname,
         password
@@ -50,6 +54,10 @@ const SignUp = () => {
       .finally(() => {}) // 성공, 실패 여부와 상관없이 무조건 실행
     }
   }, [email, nickname, password, passwordCheck, mismatchError])
+
+  if(data) {
+    return <Navigate to='workspace/channel' />
+  }
 
   return (
     <div id="container">
