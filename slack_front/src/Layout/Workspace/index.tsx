@@ -29,6 +29,11 @@ const Workspace = () => {
     setShowMenu((prev) => !prev)
   }, [])
 
+  const onCloseProfileMenu = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    e.stopPropagation()
+    setShowMenu(false)
+  }, [])
+
   if(!data) {
     return <Navigate to='/login' />
   }
@@ -46,7 +51,7 @@ const Workspace = () => {
               <Menu 
                 style={{right: 0, top: 38}} 
                 show={showMenu}
-                onCloseModal={onClickProfileMenu}>
+                onCloseModal={onCloseProfileMenu}>
                 <ProfileModal>
                   <img 
                     src={gravatar.url(data.nickname, { s: '28px', d: 'retro'})}
