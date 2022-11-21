@@ -1,17 +1,24 @@
 import axios from "axios";
 import React, { useCallback, useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, Link } from "react-router-dom";
 import useSWR from "swr";
 import fetcher from '../../utils/fetcher'
-import { Channels, Chats, Header, MenuScroll, ProfileImg, RightMenu, WorkspaceName, Workspaces, WorkspaceWrapper, ProfileModal, LogOutButton } from "./styles";
+import { Channels, Chats, Header, MenuScroll, ProfileImg, RightMenu, WorkspaceName, Workspaces, WorkspaceWrapper, ProfileModal, LogOutButton, WorkspaceButton, AddButton } from "./styles";
 import gravatar from 'gravatar'
 import Channel from "../../pages/Channel";
 import DirectMessage from "../../pages/DirectMessage";
 import Menu from "../../Components/Menu";
+import Modal from "../../Components/Modal";
+import { Label, Button, Input } from "../../pages/SignUp/styles";
+import useInput from "../../hooks/useInput";
+import { toast } from 'react-toastify'
 
 const Workspace = () => {
   const { data, mutate } = useSWR('http://localhost:3095/api/users', fetcher)
   const [showMenu, setShowMenu] = useState(false)
+  const [createWorkspaceModal, setCreateWorkspaceModal] = useState(false)
+  const [newWorkspaceName, onChangeNewWorkspacName, setNewWorkspaceName] = useInput('')
+  const [newWorkspaceURL, onChangeNewWorkspaceURL, setNewWorkspaceURL] = useInput('')
   
   const onLogout = useCallback(() => {
     axios.post('http://localhost:3095/api/users/logout', null, {
@@ -34,13 +41,43 @@ const Workspace = () => {
     setShowMenu(false)
   }, [])
 
+  const onClickCreateWorkspace = useCallback(() => {
+    console.log('click!')
+    setCreateWorkspaceModal(true)
+  }, [])
+
+  const onCloseModal = useCallback(() => {
+    setCreateWorkspaceModal(false);
+  }, [])
+
+  const onCreateWorkspace = useCallback((e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if(!newWorkspaceName || !newWorkspaceName.trim()) return;
+    if(!newWorkspaceURL || !newWorkspaceURL.trim()) return;
+    axios.post('http://localhost:3095/api/workspaces', {
+      workspace: newWorkspaceName,
+      url: newWorkspaceURL
+    },{
+      withCredentials: true,
+    })
+    .then(() => {
+      mutate()
+      setCreateWorkspaceModal(false)
+      setNewWorkspaceName('')
+      setNewWorkspaceURL('')
+    })
+    .catch((error) => {
+      toast.error(error.response?.data, { position: 'bottom-center'})
+    })
+  }, [newWorkspaceName, newWorkspaceURL])
+
   if(!data) {
     return <Navigate to='/login' />
   }
 
   return (
     <div>
-      <Header> Header
+      <Header>
         <RightMenu>
           <span onClick={onClickProfileMenu}>
             <ProfileImg 
@@ -68,9 +105,19 @@ const Workspace = () => {
           </span>
         </RightMenu>
       </Header>
+
       <WorkspaceWrapper>
-        <Workspaces>Workspaces</Workspaces>
-        <Channels>Channels
+        <Workspaces>
+          {data.Workspaces.map((ws: any) => {
+            return (
+              <Link key={ws.id} to={`/workspace/${123}/channel/일반`}>
+                <WorkspaceButton>{ws.name.slice(0, 1).toUpperCase()}</WorkspaceButton>
+              </Link>
+            )
+          })}
+          <AddButton onClick={onClickCreateWorkspace}>+</AddButton>
+        </Workspaces>
+        <Channels>
           <WorkspaceName>Workspace Name</WorkspaceName>
           <MenuScroll>Menu Scroll</MenuScroll>
         </Channels>
@@ -81,6 +128,21 @@ const Workspace = () => {
           </Routes>
         </Chats>
       </WorkspaceWrapper>
+
+      <Modal show={createWorkspaceModal} onCloseModal={onCloseModal}>
+        <form onSubmit={onCreateWorkspace}>
+          <Label id='workspace-label'>
+            <span>워크스페이스 이름</span>
+            <Input id='workspace' value={newWorkspaceName} onChange={onChangeNewWorkspacName} />
+          </Label>
+          <Label id='workspace-url-label'>
+            <span>워크스페이스 URL</span>
+            <Input id='workspace' value={newWorkspaceURL} onChange={onChangeNewWorkspaceURL} />
+          </Label>
+          <Button type='submit'>생성하기</Button>
+        </form>
+      </Modal>
+
     </div>
   )
 }
