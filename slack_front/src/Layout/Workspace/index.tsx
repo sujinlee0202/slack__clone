@@ -3,7 +3,7 @@ import React, { useCallback, useState } from "react";
 import { Navigate, Route, Routes, Link } from "react-router-dom";
 import useSWR from "swr";
 import fetcher from '../../utils/fetcher'
-import { Channels, Chats, Header, MenuScroll, ProfileImg, RightMenu, WorkspaceName, Workspaces, WorkspaceWrapper, ProfileModal, LogOutButton, WorkspaceButton, AddButton } from "./styles";
+import { Channels, Chats, Header, MenuScroll, ProfileImg, RightMenu, WorkspaceName, Workspaces, WorkspaceWrapper, ProfileModal, LogOutButton, WorkspaceButton, AddButton, WorkspaceModal } from "./styles";
 import gravatar from 'gravatar'
 import Channel from "../../pages/Channel";
 import DirectMessage from "../../pages/DirectMessage";
@@ -12,6 +12,7 @@ import Modal from "../../Components/Modal";
 import { Label, Button, Input } from "../../pages/SignUp/styles";
 import useInput from "../../hooks/useInput";
 import { toast } from 'react-toastify'
+import CreateChannelModal from "../../Components/CreateChannelModal";
 
 const Workspace = () => {
   const { data, mutate } = useSWR('http://localhost:3095/api/users', fetcher)
@@ -19,7 +20,9 @@ const Workspace = () => {
   const [createWorkspaceModal, setCreateWorkspaceModal] = useState(false)
   const [newWorkspaceName, onChangeNewWorkspacName, setNewWorkspaceName] = useInput('')
   const [newWorkspaceURL, onChangeNewWorkspaceURL, setNewWorkspaceURL] = useInput('')
-  
+  const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
+  const [createChannelModal, setCreateChannelModal] = useState(false)
+
   const onLogout = useCallback(() => {
     axios.post('http://localhost:3095/api/users/logout', null, {
       withCredentials: true
@@ -48,6 +51,7 @@ const Workspace = () => {
 
   const onCloseModal = useCallback(() => {
     setCreateWorkspaceModal(false);
+    setCreateChannelModal(false)
   }, [])
 
   const onCreateWorkspace = useCallback((e: React.FormEvent<HTMLFormElement>) => {
@@ -70,6 +74,16 @@ const Workspace = () => {
       toast.error(error.response?.data, { position: 'bottom-center'})
     })
   }, [newWorkspaceName, newWorkspaceURL])
+
+  const toggleWorkspaceModal = useCallback(() => {
+    console.log('toggleWorkspaceModal')
+    setShowWorkspaceModal((prev) => !prev)
+  }, [])
+
+  const onClickAddChannel = useCallback(() => {
+    console.log('채널 만들기')
+    setCreateChannelModal(true)
+  }, [])
 
   if(!data) {
     return <Navigate to='/login' />
@@ -118,8 +132,16 @@ const Workspace = () => {
           <AddButton onClick={onClickCreateWorkspace}>+</AddButton>
         </Workspaces>
         <Channels>
-          <WorkspaceName>Workspace Name</WorkspaceName>
-          <MenuScroll>Menu Scroll</MenuScroll>
+          <WorkspaceName onClick={toggleWorkspaceModal}>Sleact</WorkspaceName>
+          <MenuScroll>
+            <Menu show={showWorkspaceModal} onCloseModal={toggleWorkspaceModal} style={{top: 95, left: 80}}>
+              <WorkspaceModal>
+                <h2>Sleact</h2>
+                <button onClick={onClickAddChannel}>채널 만들기</button>
+                <button onClick={onLogout}>로그아웃</button>
+              </WorkspaceModal>
+            </Menu>
+          </MenuScroll>
         </Channels>
         <Chats>
           <Routes>
@@ -142,6 +164,9 @@ const Workspace = () => {
           <Button type='submit'>생성하기</Button>
         </form>
       </Modal>
+
+      <CreateChannelModal show={createChannelModal} onCloseModal={onCloseModal}>
+      </CreateChannelModal>
 
     </div>
   )
