@@ -15,6 +15,8 @@ import { toast } from 'react-toastify'
 import CreateChannelModal from "../../Components/CreateChannelModal";
 import { IChannel } from '../../typings/db'
 import { useParams } from "react-router-dom";
+import InviteWorkspaceModal from "../../Components/InviteWorkspaceModal";
+import InviteChannelModal from "../../Components/InviteChannelModal";
 
 const Workspace = () => {
   const { data, mutate } = useSWR('http://localhost:3095/api/users', fetcher)
@@ -27,6 +29,8 @@ const Workspace = () => {
   const [newWorkspaceURL, onChangeNewWorkspaceURL, setNewWorkspaceURL] = useInput('')
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
   const [createChannelModal, setCreateChannelModal] = useState(false)
+  const [showInviteWorkspaceModal, setShowInviteWorkspaceModal] = useState(false)
+  const [showInviteChannelModal, setShowInviteChannelModal] = useState(false)
 
   const onLogout = useCallback(() => {
     axios.post('http://localhost:3095/api/users/logout', null, {
@@ -78,7 +82,7 @@ const Workspace = () => {
     .catch((error) => {
       toast.error(error.response?.data, { position: 'bottom-center'})
     })
-  }, [newWorkspaceName, newWorkspaceURL])
+  }, [newWorkspaceName, newWorkspaceURL, mutate, setNewWorkspaceName, setNewWorkspaceURL])
 
   const toggleWorkspaceModal = useCallback(() => {
     console.log('toggleWorkspaceModal')
@@ -88,6 +92,10 @@ const Workspace = () => {
   const onClickAddChannel = useCallback(() => {
     console.log('채널 만들기')
     setCreateChannelModal(true)
+  }, [])
+
+  const onClickInviteWorkspace = useCallback(() => {
+    setShowInviteWorkspaceModal(true);
   }, [])
 
   if(!data) {
@@ -142,6 +150,7 @@ const Workspace = () => {
             <Menu show={showWorkspaceModal} onCloseModal={toggleWorkspaceModal} style={{top: 95, left: 80}}>
               <WorkspaceModal>
                 <h2>Sleact</h2>
+                <button onClick={onClickInviteWorkspace}>워크스페이스에 사용자 초대하기</button>
                 <button onClick={onClickAddChannel}>채널 만들기</button>
                 <button onClick={onLogout}>로그아웃</button>
               </WorkspaceModal>
@@ -178,6 +187,18 @@ const Workspace = () => {
         setShowWorkspaceModal={setShowWorkspaceModal}
       >
       </CreateChannelModal>
+
+      <InviteWorkspaceModal
+        show={showInviteWorkspaceModal}
+        onCloseModal={onCloseModal}
+        setShowInviteWorkspaceModal={setShowInviteWorkspaceModal}
+      />
+
+      <InviteChannelModal
+        show={showInviteChannelModal}
+        onCloseModal={onCloseModal}
+        setShowInviteChannelModal={setShowInviteChannelModal}
+      />
 
     </div>
   )

@@ -21,7 +21,7 @@ const CreateChannelModal = ({show, onCloseModal, setCreateChannelModal, setShowW
   const { workspace } = useParams() // <workspace: string>
   
   const { data } = useSWR<IUser | false>('http://localhost:3095/api/users', fetcher)
-  const { data: channelData, mutate: channelMutate } = useSWR<IChannel[]>(data ? `/api/workspaces/${workspace}/channels`: null, fetcher)
+  const { mutate: channelMutate } = useSWR<IChannel[]>(data ? `/api/workspaces/${workspace}/channels`: null, fetcher)
 
   const onCreateChannel = useCallback((e: React.FormEvent<HTMLFormElement> ) => {
     console.log('채널 만들기 성공')
@@ -40,7 +40,7 @@ const CreateChannelModal = ({show, onCloseModal, setCreateChannelModal, setShowW
     .catch((error) => 
       console.dir(error)
     )
-  }, [newChannelName, channelData])
+  }, [newChannelName, channelMutate, setCreateChannelModal, setShowWorkspaceModal, setNewChannelName, workspace])
 
   if(!show) return null;
   
