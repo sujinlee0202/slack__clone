@@ -17,6 +17,8 @@ import { IChannel } from '../../typings/db'
 import { useParams } from "react-router-dom";
 import InviteWorkspaceModal from "../../Components/InviteWorkspaceModal";
 import InviteChannelModal from "../../Components/InviteChannelModal";
+import ChannelList from "../../Components/ChannelList";
+import DMList from "../../Components/DMList";
 
 const Workspace = () => {
   const { data, mutate } = useSWR('http://localhost:3095/api/users', fetcher)
@@ -155,7 +157,9 @@ const Workspace = () => {
                 <button onClick={onLogout}>로그아웃</button>
               </WorkspaceModal>
             </Menu>
-            {channelData?.map((v) => <div key={v.id}>{v.name}</div>)}
+            {/* {channelData?.map((v) => <div key={v.id}>{v.name}</div>)} */}
+            <ChannelList></ChannelList>
+            <DMList></DMList>
           </MenuScroll>
         </Channels>
         <Chats>
