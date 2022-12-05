@@ -4,15 +4,19 @@ import gravatar from 'gravatar'
 import ChatBox from "../../Components/ChatBox";
 import ChatList from "../../Components/ChatList";
 import useSWR from "swr";
-import { IUser } from "../../typings/db";
+import { IDM, IUser } from "../../typings/db";
 import { useParams } from "react-router-dom";
 import fetcher from "../../utils/fetcher";
 import useInput from "../../hooks/useInput";
+import axios from "axios";
 
 const DirectMessage = () => {
   const { workspace, id} = useParams<{workspace: string, id: string}>();
   const { data: userData } = useSWR<IUser>(`/api/workspaces/${workspace}/users/${id}`, fetcher)
   const { data: myData } = useSWR(`/api/users`, fetcher)
+  const { data: chatData, mutate: mutateChat } = useSWR<IDM[]>(
+    `/api/workspaces/${workspace}/dms/${id}/chats?perPage=20&page=1`
+  )
 
   const [chat, onChangeChat, setChat] = useInput('')
 
@@ -20,7 +24,18 @@ const DirectMessage = () => {
     e.preventDefault();
     setChat('')
     console.log('submit')
-  }, [setChat])
+    console.log(chat)
+    if(chat?.trim()) {
+      axios.post(`/api/workspaces/${workspace}/dms/${id}/chats`, {
+        content: chat
+      })
+      .then(() => {
+        mutateChat()
+        setChat('')
+      })
+      .catch(console.error)
+    }
+  }, [setChat, mutateChat, chat, workspace, id])
 
   if(!userData || !myData) {
     return null;
