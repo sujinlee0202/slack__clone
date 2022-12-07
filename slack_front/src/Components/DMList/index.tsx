@@ -2,6 +2,7 @@ import React, { FC, useCallback, useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom';
 import { useParams } from 'react-router-dom'
 import useSWR from 'swr';
+import useSocket from '../../hooks/useSocket';
 import { IUser, IUserWithOnline } from '../../typings/db';
 import fetcher from '../../utils/fetcher';
 import { CollapseButton, H2, CircleDiv, DMMember } from './styles';
@@ -15,6 +16,20 @@ const DMList: FC = () => {
 
   const [channelCollapse, setChannelCollapse] = useState(false);
   const [onlineList, setOnlineList] = useState<number[]>([]);
+
+  const [socket] = useSocket(workspace);
+
+  useEffect(() => {
+    // 서버로부터 온라인인 사람들의 리스트 불러오기
+    socket?.on('onlineList', (data: number[]) => {
+      setOnlineList(data);
+    })
+
+    // 이벤트 리스너가 있으면(on) 이벤트 리스너를 정리해주는 것도 필요하다. (off)
+    return () => {
+      socket?.off('onlineList')
+    }
+  }, [socket])
   
   const toggleChannelCollapse = useCallback(() => {
     setChannelCollapse((prev) => !prev)

@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Navigate, Route, Routes, Link } from "react-router-dom";
 import useSWR from "swr";
 import fetcher from '../../utils/fetcher'
@@ -19,6 +19,7 @@ import InviteWorkspaceModal from "../../Components/InviteWorkspaceModal";
 import InviteChannelModal from "../../Components/InviteChannelModal";
 import ChannelList from "../../Components/ChannelList";
 import DMList from "../../Components/DMList";
+import useSocket from "../../hooks/useSocket";
 
 const Workspace = () => {
   const { data, mutate } = useSWR('http://localhost:3095/api/users', fetcher)
@@ -33,6 +34,26 @@ const Workspace = () => {
   const [createChannelModal, setCreateChannelModal] = useState(false)
   const [showInviteWorkspaceModal, setShowInviteWorkspaceModal] = useState(false)
   const [showInviteChannelModal, setShowInviteChannelModal] = useState(false)
+
+  const [socket, disconnect] = useSocket(workspace);
+
+  // Socket 연결하기
+  useEffect(() => {
+    if(channelData && data && socket) {
+      console.log(socket)
+      socket.emit('login', {
+        id: data.id,
+        channels: channelData.map((v) => v.id)
+      })
+    }
+  }, [channelData, data, socket])
+
+  // Socket 연결 끊기
+  useEffect(() => {
+    return () => {
+      disconnect();
+    }
+  }, [workspace, disconnect])
 
   const onLogout = useCallback(() => {
     axios.post('http://localhost:3095/api/users/logout', null, {
