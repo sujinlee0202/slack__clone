@@ -15,9 +15,9 @@ const DirectMessage = () => {
   const { data: userData } = useSWR<IUser>(`/api/workspaces/${workspace}/users/${id}`, fetcher)
   const { data: myData } = useSWR(`/api/users`, fetcher)
   const { data: chatData, mutate: mutateChat } = useSWR<IDM[]>(
-    `/api/workspaces/${workspace}/dms/${id}/chats?perPage=20&page=1`
+    `/api/workspaces/${workspace}/dms/${id}/chats?perPage=20&page=1`,
+    fetcher,
   )
-
   const [chat, onChangeChat, setChat] = useInput('')
 
   const onSubmitForm = useCallback((e: React.FormEvent<HTMLFormElement> | React.KeyboardEvent<HTMLTextAreaElement>) => {
