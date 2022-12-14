@@ -60,6 +60,7 @@
     "react-refresh": "^0.11.0",
     "react-router-dom": "^6.4.3",
     "react-toastify": "^9.1.1",
+    "regexify-string": "^1.0.19",
     "resolve": "^1.20.0",
     "resolve-url-loader": "^4.0.0",
     "sass-loader": "^12.3.0",
