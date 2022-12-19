@@ -3,15 +3,16 @@ import { Container, Header } from "./styles";
 import gravatar from 'gravatar'
 import ChatBox from "../../Components/ChatBox";
 import ChatList from "../../Components/ChatList";
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import useSWRInfinite from 'swr/infinite'
-import { IDM, IUser } from "../../typings/db";
+import { IDM } from "../../typings/db";
 import { useParams } from "react-router-dom";
 import fetcher from "../../utils/fetcher";
 import useInput from "../../hooks/useInput";
 import axios from "axios";
 import makeSection from "../../utils/makeSection";
 import Scrollbars from "react-custom-scrollbars-2";
+import useSocket from "../../hooks/useSocket";
 
 const DirectMessage = () => {
   const { workspace, id} = useParams<{workspace: string, id: string}>();
@@ -23,6 +24,8 @@ const DirectMessage = () => {
   ) // 채팅 가져오는 api
   const [chat, onChangeChat, setChat] = useInput('')
   const scrollbarRef = useRef<Scrollbars>(null);
+
+  const [socket] = useSocket(workspace)
 
   const isEmpty = chatData?.[0]?.length === 0;
   const isReachingEnd = isEmpty || (chatData && chatData[chatData.length - 1]?.length < 20) || false
@@ -58,6 +61,33 @@ const DirectMessage = () => {
       .catch(console.error)
     }
   }, [setChat, mutateChat, chat, workspace, id, chatData, myData, userData])
+  
+  const onMessage = useCallback((data: IDM) => {
+    if(data.SenderId === Number(id) && myData.id !== Number(id)) {
+      mutateChat((chatData) => {
+        chatData?.[0].unshift(data);
+        return chatData
+      }, false)
+      .then(() => {
+        if(scrollbarRef.current) {
+          if(
+            scrollbarRef.current.getScrollHeight() < 
+            scrollbarRef.current.getClientHeight() + scrollbarRef.current.getScrollTop() + 150
+          ) {
+            console.log('scrollToBottom', scrollbarRef.current?.getValues())
+              scrollbarRef.current?.scrollToBottom()
+          }
+        }
+      })
+    }
+  }, [mutateChat, id, myData])
+
+  useEffect(() => {
+    socket?.on('dm', onMessage)
+    return () => {
+      socket?.off('dm', onMessage)
+    }
+  }, [socket, onMessage])
 
   useEffect(() => {
     if(chatData?.length === 1) {
