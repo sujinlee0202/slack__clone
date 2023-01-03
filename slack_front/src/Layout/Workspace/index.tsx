@@ -141,7 +141,7 @@ const Workspace = () => {
                 onCloseModal={onCloseProfileMenu}>
                 <ProfileModal>
                   <img 
-                    src={gravatar.url(data.nickname, { s: '28px', d: 'retro'})}
+                    src={gravatar.url(data.email, { s: '28px', d: 'retro'})}
                     alt={data.nickname}
                   ></img>
                   <div>

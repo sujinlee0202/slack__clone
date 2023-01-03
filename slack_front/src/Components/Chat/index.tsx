@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { IDM } from '../../typings/db'
+import { IChat, IDM } from '../../typings/db'
 import { ChatWrapper } from './styles'
 import gravatar from 'gravatar'
 import dayjs from 'dayjs'
@@ -8,12 +8,12 @@ import { Link } from 'react-router-dom'
 import regexifyString from 'regexify-string'
 
 interface Props {
-  data: IDM
+  data: IDM | IChat
 }
 
 const Chat = ({ data }: Props) => {
   const { workspace } = useParams<{workspace: string; channel: string}>();
-  const user = data.Sender
+  const user = 'Sender' in data ? data.Sender : data.User
 
   const result = useMemo(() => regexifyString({
     input: data.content,
