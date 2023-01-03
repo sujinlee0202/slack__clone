@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import useSWR from "swr";
 import ChatBox from "../../Components/ChatBox";
 import useInput from "../../hooks/useInput";
-import { Container, Header } from "./styles";
+import { Container, DragOver, Header } from "./styles";
 import useSWRInfinite from 'swr/infinite'
 import fetcher from "../../utils/fetcher";
 import { IChannel, IChat, IUser } from "../../typings/db";
@@ -30,6 +30,7 @@ const Channel = () => {
 
   const [chat, onChangeChat, setChat] = useInput('');
   const [showInviteChannelModal, setShowInviteChannelModal] = useState(false)
+  const [dravOver, setDragOver] = useState(false)
 
   const isEmpty = chatData?.[0]?.length === 0;
   const isReachingEnd = isEmpty || (chatData && chatData[chatData.length - 1]?.length < 20) || false;
@@ -75,7 +76,7 @@ const Channel = () => {
   // API -> dm / 새로운 dm 메시지가 올 때, 서버 데이터 : IDM(dm 데이터)
   const onMessage = useCallback((data: IChat) => {
     // id: 상대방 아이디
-    if(data.Channel.name === channel && data.UserId !== myData?.id) {
+    if(data.Channel.name === channel && ( data.content.startsWith('uploads\\') || data.UserId !== myData?.id)) {
       mutate((chatData) => {
         chatData?.[0].unshift(data);
         return chatData
@@ -104,6 +105,40 @@ const Channel = () => {
     setShowInviteChannelModal(false)
   }, [])
 
+  const onDrop = useCallback(
+    (e: any) => {
+      e.preventDefault();
+      console.log(e);
+      const formData = new FormData();
+      if (e.dataTransfer.items) {
+        // Use DataTransferItemList interface to access the file(s)
+        for (let i = 0; i < e.dataTransfer.items.length; i++) {
+          // If dropped items aren't files, reject them
+          if (e.dataTransfer.items[i].kind === 'file') {
+            const file = e.dataTransfer.items[i].getAsFile();
+            console.log(e, '.... file[' + i + '].name = ' + file.name);
+            formData.append('image', file);
+          }
+        }
+      } else {
+        // Use DataTransfer interface to access the file(s)
+        for (let i = 0; i < e.dataTransfer.files.length; i++) {
+          console.log(e, '... file[' + i + '].name = ' + e.dataTransfer.files[i].name);
+          formData.append('image', e.dataTransfer.files[i]);
+        }
+      }
+      axios.post(`/api/workspaces/${workspace}/channels/${channel}/images`, formData).then(() => {
+        setDragOver(false);
+      });
+    },
+    [workspace, channel],
+  );
+
+  const onDragOver = useCallback((e: any) => {
+    e.preventDefault();
+    setDragOver(true)
+  }, [])
+
   // 변경
   useEffect(() => {
     socket?.on('message', onMessage)
@@ -129,7 +164,7 @@ const Channel = () => {
   const chatSections = makeSection(chatData ? [...chatData].flat().reverse() : []) 
 
   return (
-    <Container>
+    <Container onDrop={onDrop} onDragOver={onDragOver}>
       <Header>
         {/* 변경 */}
         <span>#{channel}</span>
@@ -149,6 +184,7 @@ const Channel = () => {
         onCloseModal={onCloseModal}
         setShowInviteChannelModal={setShowInviteChannelModal}
       />
+      {dravOver && <DragOver>업로드!</DragOver>}
     </Container>
   )
 }

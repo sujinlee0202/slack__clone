@@ -11,11 +11,18 @@ interface Props {
   data: IDM | IChat
 }
 
+const BACK_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:3095' : 'https://sleact.nodebird.com';
+
+
 const Chat = ({ data }: Props) => {
   const { workspace } = useParams<{workspace: string; channel: string}>();
   const user = 'Sender' in data ? data.Sender : data.User
 
-  const result = useMemo(() => regexifyString({
+  const result = useMemo(() => 
+  data.content.startsWith('uploads\\') || data.content.startsWith('uploads/') ? (
+    <img src={`${BACK_URL}/${data.content}`} style={{ maxHeight: 200 }} />
+  )
+  : (regexifyString({
     input: data.content,
     // @[티치냥](7)
     pattern: /@\[(.+?)\]\((\d+?)\)|\n/g, // id, 줄바꿈
@@ -30,7 +37,7 @@ const Chat = ({ data }: Props) => {
       }
       return <br key={index} />
     }
-  }), [data.content, workspace])
+  })), [data.content, workspace])
 
   return (
     <ChatWrapper>
